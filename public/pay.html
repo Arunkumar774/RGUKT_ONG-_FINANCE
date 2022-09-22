@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-expand-md nav1">
+  <div class="container-fluid div1">
+    <a class="navbar-brand disabled" href="#"><img src="logo.png" alt="rgukt logo" width="40px" height="40px" ><b style="color:#66fcf1">RGUKT-ONG</b></a>
+    <button class="navbar-toggler btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
+      <ul class="navbar-nav  nav-fill" >
+        <li class="nav-item" >
+          <a class="nav-link" aria-current="page" href="/index.html">HOME</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/about.html">ABOUT US</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="/pay.html" style="color: #66fcf1;">PAY</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="contact.html">CONTACT US</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/login.html">LOGIN</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  <div class="row" style="margin-right: 0px;">
+    <div class="col-lg-2 col-md-2 col-sm-2">
+    </div>
+    <div class="pay justify-content-center col-lg-8 col-sm-8 col-md-8">
+        <h3 style="text-decoration: underline;text-align:center"><b>PLease fill below details</b></h3>
+        <div>
+          <label for="">Date*</label>
+          <input type="date" name="" id="date">
+        </div>
+        <div>
+          <label for="">Name of Student*</label>
+          <input type="text" name="" id="name">
+        </div>
+        <div>
+          <label for="">Id Number*</label>
+          <input type="text" name="" id="id">
+        </div>
+        <div>
+          <label for="">Class and Year*</label>
+          <input type="text" name="" id="class">
+        </div>
+        <div>
+          <label for="">E-mail*</label>
+          <input type="email" name="" id="email">
+        </div>
+        <div>
+          <label for="">Phone Number*</label>
+          <input type="text" name="" id="phone">
+        </div>
+        <div>
+          <label for="">Amount paid RS.*</label>
+          <input type="text" name="" id="amount">
+        </div>
+        <div>
+          <label for="">Amount in words*</label>
+          <input type="text" name="" id="amountword">
+        </div>
+        <div>
+          <label for="">Remarks*</label>
+          <input type="text" name="" id="amountword">
+        </div>
+        <div>
+          <button id="order-button1" class="btn btn-lg">Pay</button>
+        </div>
+      </div>
+  </div>
+  <br><br><br>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        document.getElementById("order-button1").onclick = function(e){
+            let orderID;
+            if(document.getElementById("name").value==="" || document.getElementById("date").value==="" || document.getElementById("class").value==="" || document.getElementById("id").value==="" || document.getElementById("amount").value==="" || document.getElementById("amountword").value===""){
+                alert("Please fill all required fields!")
+            }
+            else{
+                var url="/api/payment/order"
+                var params={
+                    amount: document.getElementById("amount").value*100,
+                    currency:   "INR",
+                    receipt:    "rguktfee001",
+                    payment_capture:    "1"
+                };
+                var xmlHttp=new XMLHttpRequest();
+                xmlHttp.onreadystatechange=function(res){
+                    if(xmlHttp.readyState ===4){
+                        res=JSON.parse(xmlHttp.responseText);
+                       var orderID=res.sub.id
+                       var options={
+                        "key":"rzp_test_DzBXjDCe92SrCk",
+                        "currency":"INR",
+                        "name":"RGUKT Ongole",
+                        "description":"RGUKT FEE Transaction",
+                        "order_id":orderID,
+                        "handler":function(response){
+                            var payment_id=response.razorpay_payment_id;
+                            var order_id=response.razorpay_order_id;
+                            var signature=response.razorpay_signature;
+                            var url="/api/payment/verify";
+                            var params={
+                                razorpay_order_id:order_id,
+                                razorpay_payment_id:payment_id,
+                                razorpay_signature:signature
+                            };
+                            var xmlHttp=new XMLHttpRequest();
+                            xmlHttp.onreadystatechange=function(res){
+                                if(xmlHttp.readyState === 4){
+                                    status=xmlHttp.responseText
+                                    if(xmlHttp.responseText===status){
+                                        // res.send(`<h1>Your payment to rgukt ongole is Successful</h1><br><a href="/">Click to goto Home Page</a> `)
+                                        alert("Your payment to rgukt ongole is Successful")
+                                      }
+                                    else{
+                                        // res.send(`<h1>Your payment to rgukt ongole is Failed</h1><br><a href="/pay.html">Click to go back to pay</a> `)
+                                        alert("Your payment to rgukt ongole is Failed")
+                                    }
+                                }
+                            }
+                            xmlHttp.open("POST",url,true);
+                            xmlHttp.setRequestHeader("content-type","application/json");
+                            xmlHttp.send(JSON.stringify(params));
+                        },
+                        "theme":{
+                            "color":"#0EB9F2"
+                        }  
+                    };
+                    var rzp1=new Razorpay(options);
+                    rzp1.open();
+                    e.preventDefault();
+                    }
+                }
+            xmlHttp.open("POST",url,true);
+            xmlHttp.setRequestHeader("content-type","application/json");
+            xmlHttp.send(JSON.stringify(params));
+            }
+        }
+    </script>
+  <div class="footer">
+    <div class="row">
+      <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+        <img src="logo.png" alt="" height="50px" width="50px">
+        RGUKT-ONGOLE
+        <p>RGUKT Ongole Campus,<br>Kurnool Road,<br>Santhanuthalapadu(V&M),<br>Prakasam District,Andhra Pradesh -523225.</p> 
+      </div>
+      <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+        <h5>Contact Us</h5>
+        <p>Dr.Shaik Meeravali(Finance Officer)</p>
+        <img src="envelope.svg" alt="" height="20px" width="20px">fo@rguktong.ac.in <br><br>
+        <img src="phone.svg" alt="" height="20px" width="20px">7670905583
+      </div>
+    </div>
+    <hr>
+  </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.5/dist/umd/popper.min.js" integrity="sha384-Xe+8cL9oJa6tN/veChSP7q+mnSPaj5Bcu9mPX5F5xIGE0DVittaqT5lorf0EI7Vk" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.min.js" integrity="sha384-kjU+l4N0Yf4ZOJErLsIcvOU2qSb74wXpOhqTvwVx3OElZRweTnQ6d31fXEoRD1Jy" crossorigin="anonymous"></script>
+</html>
